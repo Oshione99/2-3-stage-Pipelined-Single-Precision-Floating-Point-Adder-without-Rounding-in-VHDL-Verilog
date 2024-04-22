@@ -1,0 +1,41 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity exponent_align is
+  port (
+    a, b : in std_logic_vector(31 downto 0);
+    out1, out2 : out std_logic_vector(31 downto 0)
+  );
+end entity exponent_align;
+
+architecture rtl of exponent_align is
+  constant EXP_WIDTH : integer := 8; -- Exponent width (8 bits for single-precision)
+  constant MANTISSA_WIDTH : integer := 23; -- Mantissa width (23 bits for single-precision)
+
+begin
+  -- Exponent alignment logic using structural components
+  process (a, b)
+    variable a_exp, b_exp : integer;
+    variable shift_amount : integer;
+    variable shifted_b : std_logic_vector(31 downto 0);
+  begin
+    -- Extract exponents (bits [30:23])
+    a_exp := to_integer(unsigned(a(30 downto 23)));
+    b_exp := to_integer(unsigned(b(30 downto 23)));
+
+    if a_exp >= b_exp then
+      -- Align mantissa of b by shifting right (a_exp - b_exp) positions
+      shift_amount := a_exp - b_exp;
+      shifted_b := std_logic_vector(unsigned(b) srl shift_amount); -- Right shift operation
+      out1 <= a;
+      out2 <= shifted_b;
+    else
+      -- Align mantissa of a by shifting right (b_exp - a_exp) positions
+      shift_amount := b_exp - a_exp;
+      out1 <= std_logic_vector(unsigned(a) srl shift_amount); -- Right shift operation
+      out2 <= b;
+    end if;
+  end process;
+end architecture rtl;
+
